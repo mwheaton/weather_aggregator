@@ -30,10 +30,13 @@ use Data::Dumper;
 
 # pcode, zip,precip and lat long are missing so we will fudge that for testing
 
+# data initialization is broken up into two steps to simulate how it
+# will actually be processed when retrieved from an API.  In this
+# example shermanctweather returns only its own weather so thinks like
+# postal address, lat, and long are fixed.  The rest will be filtered
+# out of the content returned
 
-my $line = "2024-01-31 18:15:00,1018.50,32.0,28.6,87,10,157,,,,,,";
-my ($ut, undef, $temp, undef, undef, $ws, $wd) = split(",", $line);
-
+# unchanging data for the shermanctweather site
 my %data =
 (
     pcode => '06784',
@@ -42,6 +45,9 @@ my %data =
     long => -73.4730,
 );
 
+# simulated value retrieved via the API
+my $line = "2024-01-31 18:15:00,1018.50,32.0,28.6,87,10,157,,,,,,";
+my ($ut, undef, $temp, undef, undef, $ws, $wd) = split(",", $line);
 
 # print "$ut,, $temp,, $ws, $wd\n"; 
 
@@ -50,9 +56,10 @@ $data{temp} = $temp;
 $data{wind_speed} = $ws;
 $data{wind_dir} = $wd;
 
-print Dumper(\%data);    
-
 my $entry  = W_entry->new(%data);
 
-print Dumper($entry);
-print "ref: ref($entry)\n";
+# print "back from new\n";
+# print Dumper($entry);
+# print "ref: ref($entry)\n";
+
+$entry->print();
