@@ -4,7 +4,7 @@
 # invoke with:  perl -I . test_entry.pl
 # to import the local modules
 
-# use strict;
+use strict;
 
 # add local directory to @INC to find local module
 # change this to your local path or use the abovd invocation of perl above
@@ -45,11 +45,43 @@ my %data =
     long => -73.4730,
 );
 
-# simulated value retrieved via the API
-my $line = "2024-01-31 18:15:00,1018.50,32.0,28.6,87,10,157,,,,,,";
-my ($ut, undef, $temp, undef, undef, $ws, $wd) = split(",", $line);
+# FIXTHIS: output from wget includes file name generated.  seems to be
+# coming out of stderr?  retrieve lines, clean up output, and get that filename
+system("cd sherman_results;wget 'http://weather.gladstonefamily.net/cgi-bin/wxobservations.pl?site=C0465&days=7&csv=1'");
+if($?) { die "\n*** EXITING ****: data retrieval failed for sherman CT weather\n\n";}
 
-# print "$ut,, $temp,, $ws, $wd\n"; 
+# open file and parse last line
+# if cleanup did not occur, get the most recent file (assumed to be the last on the list)
+my $file;
+my @files = <./sherman_results/wxobservations*>;
+if(@files) { $file = pop(@files);}
+
+# print "@files \n";
+print "$file \n";
+	     
+open(FILE, "<", $file) or die ("cannot open weather file: $file");
+my $line;
+my @lines = <FILE>; 
+# foreach $line (@lines)
+# {
+#     print $line;
+# }
+
+$line = pop(@lines);
+if(!$line)
+{  
+    warn "data retrieval failed\n";
+    # don't update, leave file for debug
+    exit;  # should be return if used as a method
+}
+# unlink returns number of files removed, check count or perhaps use the file list from the above glob (@files)
+unlink $file;
+print "last line:\n";
+print $line;
+
+# split the line by commas
+my ($ut, undef, $temp, undef, undef, $ws, $wd) = split(",", $line);
+print "$ut,, $temp,, $ws, $wd\n"; 
 
 $data{utime} = $ut;
 $data{temp} = $temp;
@@ -58,8 +90,8 @@ $data{wind_dir} = $wd;
 
 my $entry  = W_entry->new(%data);
 
-# print "back from new\n";
-# print Dumper($entry);
-# print "ref: ref($entry)\n";
+# # print "back from new\n";
+print Dumper($entry);
+# # print "ref: ref($entry)\n";
 
-$entry->print();
+# $entry->print();

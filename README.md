@@ -83,3 +83,18 @@ Ideas:
 *** found an api for sherman ct weather:
     https://www.shermanctweather.org/pwsWDtest/index.php?frame=CWOP&theme=dark&lang=en-us&units=us
     - I can retrieve a CSV
+    https://weather.gladstonefamily.net/cgi-bin/wxobservations.pl?site=C0465&days=7&type=.iqy
+    wget 'http://weather.gladstonefamily.net/cgi-bin/wxobservations.pl?site=C0465&days=7&csv=1'")
+
+------------------------------------------------------------------------------------------
+
+Steps Taken:
+
+- set up an entry class, debugged constructor, implemented a print method
+  - created a test script
+  - had issues with hash syntax, rookie mistake, definitely rusty
+
+- writing code to retrieve and parse output from sherman ct weather site
+
+* plan is to put this code and appropriate values into a config file, not sure if I want to create a base method in the
+  class and augment it as weather sites are added, potentially store an anonymous subroutine in the source object
