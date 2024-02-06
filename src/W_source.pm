@@ -20,174 +20,66 @@ use W_entry;
 # ------------------------------------------------------------------------------------------
 # sherman ct weather config
 # ------------------------------------------------------------------------------------------
-my %sherman_data =
-    (
-     pcode => '06784',
-     source => "CW0465",
-     lat => 41.5772,
-     long => -73.4730,
-    );
-
-
 sub sherman_get_entry
 {
+    # information not provided by source retrieval
+    my %data =
+	(
+	 source => 'CW0465',
+	 lat => 41.5772,
+	 long => -73.4730,
+	);
+    
     # values that are specific to this source retrieval (source config)
     my %sconf =
 	(
-	 pcode => '06784',
-	 source => "Sherman",
-	 lat => 41.5772,
-	 long => -73.4730,
 	 result_dir          => "sherman_results",
 	 url                 => 'http://weather.gladstonefamily.net/cgi-bin/wxobservations.pl?site=C0465&days=7&csv=1',
-	 result_file_pattern => "wxobservations*",
+	 result_file_pattern => "wxobservations*",         # no longer needed
+	 result_file         => "sherman_wxobservations",
 	);
-    # # FIXTHIS: output from wget includes file name generated.  seems to be
-    # # coming out of stderr?  retrieve lines, clean up output, and get that filename
-    # # alternatively replace it with an LWP exchange
-    # # system("cd sherman_results;wget 'http://weather.gladstonefamily.net/cgi-bin/wxobservations.pl?site=C0465&days=7&csv=1'");
-    # system("cd $sconf{result_dir} ;wget \'$sconf{url}\'");
-    # if($?) { die "\n*** EXITING ****: data retrieval failed for sherman CT weather\n\n";}
 
-    # # open file and parse last line
-    # # if cleanup did not occur, get the most recent file (last on the list)
-    # my $file;
-    # # my @files = <./$sconf{result_dir}/wxobservations*>;
-    # my @files = <./$sconf{result_dir}/$sconf{result_file_pattern}>;
-    # if(@files) { $file = pop(@files);}
-
-    # # print "@files \n";
-    # print "File to parse: $file \n";
-    
-    # open(FILE, "<", $file) or die ("cannot open weather file: $file");
-    # my $line;
-    # my @lines = <FILE>; 
-    
-    # $line = pop(@lines);
-    # if(!$line)
-    # {  
-    # 	warn "data retrieval failed\n";
-    # 	# don't update, leave file for debug
-    # 	exit;  # should be return if used as a method
-    # }
-    # # unlink returns number of files removed, check count or perhaps use the file list from the above glob (@files)
-    # unlink $file;
-    # print "last line:\n";
-    # print $line;
-
-    # # split the line by commas
-    # my ($ut, undef, $temp, undef, undef, $ws, $wd) = split(",", $line);
-    # print "$ut,, $temp,, $ws, $wd\n"; 
-    
-    # $data{utime} = $ut;
-    # $data{temp} = $temp;
-    # $data{wind_speed} = $ws;
-    # $data{wind_dir} = $wd;
-    
-    # my $entry  = W_entry->new(%data);
-
-    # # # print "back from new\n";
-    # print Dumper($entry);
-    # # # print "ref: ref($entry)\n";
-
-    # # $entry->print();
-    # return $entry;
-}
-
-# ------------------------------------------------------------------------------------------
-# METARS  weather config
-# ------------------------------------------------------------------------------------------
-
-sub metars_get_entries
-{
-
-#      wget "https://aviationweather.gov/data/cache/metars.cache.csv.gz"
-    # values that are specific to this source retrieval 
-    my %sconf =
-	(
-	 result_dir          => "metar_results",
-	 url                 => 'https://aviationweather.gov/data/cache/metars.cache.csv.gz',
-	 result_file         => "metars.cache.csv.gz*",
-	);
-    # # FIXTHIS: output from wget includes file name generated.  seems to be
-    # # coming out of stderr?  retrieve lines, clean up output, and get that filename
-    # # alternatively replace it with an LWP exchange
-    # # system("cd sherman_results;wget 'http://weather.gladstonefamily.net/cgi-bin/wxobservations.pl?site=C0465&days=7&csv=1'");
-    system("cd $sconf{result_dir} ;wget \'$sconf{url}\' -O \'$sconf{result_file}\'");
+    # wget -q = quiet output
+    # wget -O <output>  specify a filename, allowing overwriting without prompt (y/n) for permission
+    # may want to break up this pair and test for individual success?
+    system("cd $sconf{result_dir};
+    	    wget -qO \'$sconf{result_file}\' \'$sconf{url}\' ");
     if($?) { die "\n*** EXITING ****: data retrieval failed for sherman CT weather\n\n";}
     
-    # strip off numeric extenstion? unzip file
-
-    # # open file and parse last line
-    # # if cleanup did not occur, get the most recent file (last on the list)
-    # my $file;
-    # # my @files = <./$sconf{result_dir}/wxobservations*>;
-    # my @files = <./$sconf{result_dir}/$sconf{result_file_pattern}>;
-    # if(@files) { $file = pop(@files);}
-
-    # # print "@files \n";
-    # print "File to parse: $file \n";
+    open(FILE, "<", "$sconf{result_dir}/$sconf{result_file}") or die ("cannot open weather file: $sconf{result_file}");
+    my $line;
+    my @lines = <FILE>;  
     
-    # open(FILE, "<", $file) or die ("cannot open weather file: $file");
-    # my $line;
-    # my @lines = <FILE>; 
-    
-    # $line = pop(@lines);
-    # if(!$line)
-    # {  
-    # 	warn "data retrieval failed\n";
-    # 	# don't update, leave file for debug
-    # 	exit;  # should be return if used as a method
-    # }
-    # # unlink returns number of files removed, check count or perhaps use the file list from the above glob (@files)
-    # unlink $file;
-    # print "last line:\n";
-    # print $line;
+    $line = pop(@lines);
+    if(!$line)
+    {  
+	warn "data retrieval failed\n";
+	# don't update, leave file for debug
+	exit;  # should be return if used as a method
+    }
+    # unlink returns number of files removed, check count or perhaps use the file list from the above glob (@files)
+    unlink "$sconf{result_dir}/$sconf{result_file}";
+    print "last line:\n";
+    print $line;
 
-    # # split the line by commas
-    # my ($ut, undef, $temp, undef, undef, $ws, $wd) = split(",", $line);
-    # print "$ut,, $temp,, $ws, $wd\n"; 
+    # split the line by commas
+    my ($ut, undef, $temp, undef, undef, $ws, $wd) = split(",", $line);
+    print "$ut,, $temp,, $ws, $wd\n"; 
     
-    # $data{utime} = $ut;
-    # $data{temp} = $temp;
-    # $data{wind_speed} = $ws;
-    # $data{wind_dir} = $wd;
+    $data{utime} = $ut;
+    $data{temp} = $temp;
+    $data{wind_speed} = $ws;
+    $data{wind_dir} = $wd;
     
-    # my $entry  = W_entry->new(%data);
+    my $entry  = W_entry->new(%data);
 
-    # # # print "back from new\n";
-    # print Dumper($entry);
-    # # # print "ref: ref($entry)\n";
+    # # print "back from new\n";
+    print Dumper($entry);
+    # # print "ref: ref($entry)\n";
 
-    # # $entry->print();
-    # return $entry;
+    # $entry->print();
+    return $entry;
 }
-
-
-# ------------------------------------------------------------------------------------------
-
-# sub new
-# {
-#     my($caller, %args) = @_;
-#     my $class = ref($caller) || $caller;
-
-#     # expect data to vary from source to source, so in this case we want to initialize based on the argument list
-#     print "class = $class\n";
-#     my $self = {};
-
-#     print ref($args{get_entry});
-#     foreach my $key (keys(%args))
-#     {
-# 	print "new key: $key\n";
-# 	$self->{$key} = $args{$key}; 
-#     }
-
-#     bless $self, $class;
-#     print Dumper($self);
-
-#     $self->get_entry();
-# }
-    
 
 1;
 

@@ -38,7 +38,7 @@ use Data::Dumper;
 my %data =
     (
      pcode => '06784',
-     source => "Sherman",
+     source => 'CW0465',
      lat => 41.5772,
      long => -73.4730,
     );
