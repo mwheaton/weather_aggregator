@@ -1,5 +1,6 @@
 package W_source;
 use strict;
+use DBI;
 use Data::Dumper;
 
 BEGIN { push(@INC, "/home/mwheat/payroc/weather_aggregator/src") }
@@ -57,15 +58,12 @@ sub sherman_get_entry
 	# don't update, leave file for debug
 	exit;  # should be return if used as a method
     }
-    # unlink returns number of files removed, check count or perhaps use the file list from the above glob (@files)
+    # unlink returns number of files removed, check to verify
     unlink "$sconf{result_dir}/$sconf{result_file}";
-    print "last line:\n";
-    print $line;
-
+    
     # split the line by commas
     my ($ut, undef, $temp, undef, undef, $ws, $wd) = split(",", $line);
-    print "$ut,, $temp,, $ws, $wd\n"; 
-    
+        
     $data{utime} = $ut;
     $data{temp} = $temp;
     $data{wind_speed} = $ws;
@@ -73,12 +71,11 @@ sub sherman_get_entry
     
     my $entry  = W_entry->new(%data);
 
-    # # print "back from new\n";
-    print Dumper($entry);
-    # # print "ref: ref($entry)\n";
-
-    # $entry->print();
-    return $entry;
+    # print Dumper($entry);
+   
+    $entry->print();
+    print "\n\n";
+    return $entry;    # keep this for test_source, but comment out for production
 }
 
 #------------------------------------------------------------------------------------------
@@ -105,13 +102,14 @@ sub metars_get_entries
 	    ");
     if($?) { die "\n*** EXITING ****: data retrieval failed for metar weather\n\n";}
 
-    # # if cleanup did not occur, get the most recent file (last on the list)  FIXME: Think about this!
-    
     # filename no longer has a gz extention
     my $csv_file;
     ($csv_file = $sconf{result_file}) =~ s/\.gz$//;
-    # print "csv_file = $csv_file\n";
 
+    # open the database
+    # DBI->connect(dbi:Pg:dbname=$dbname);
+    
+    # FIXTHIS:  wind_direction can be 'VRB'  Find out what that means, filter or correct
     my ($line, @fields, %data);
     open(FILE, "<", "$sconf{result_dir}/$csv_file") or die ("cannot open weather file: $csv_file");
     foreach $line (<FILE>) 
@@ -122,11 +120,6 @@ sub metars_get_entries
 	# print "$line\n";
 	@fields = split(",", $line);
 
-	# for( my $i = 0; $i < 9; $i++)
-	# {
-	#     print "$i: $fields[$i]\n";
-	# }
-
 	$data{source}     = $fields[1];
 	$data{utime}      = $fields[2];
 	$data{lat}        = $fields[3];
@@ -135,28 +128,51 @@ sub metars_get_entries
 	$data{wind_dir}   = $fields[7];
 	$data{wind_speed} = $fields[8];
 
-	# # $data{pcode} = "???";   #FIXTHIS:  may be doing away with postal code
-	# my $source = $fields[1];
-	# my $ut     = $fields[2];
-	# my $lat    = $fields[3];
-	# my $long   = $fields[4];
-	# my $temp   = $fields[5];
-	# my $wd     = $fields[7];
-	# my $ws     = $fields[8];
-
-	# print "src: $data{source}, utime: $data{utime}  lat: $data{lat} long: $data{long} temp: $data{temp} windir: $data{wind_dir} windspeed: $data{wind_speed}    \n\n";
-	# print Dumper(\%data);
-
 	my $entry  = W_entry->new(%data);
  	$entry->print();
+	print "\n\n";
+	
 	# ideally, the entries should be written to database at this point either by insert or update
 
+	# not sure if I can simply insert or if I need to test for a row, insert if not found, update otherwise
+	# statement handles might be prepared outside the loop if I can bind parameters with statements
+	# example:
+	# my $sth = $dbh->prepare("select source from payroc_weather where source = ?");
+	# $sth->bind_param( 1, $data{source} );
+	# $sth-execute();
+	# if( $sth->fetchrow_array)
+	# {
+	#     $dbh->do(update payroc_weather
+	# 	     set .....
+	# 	     where source = $data{source} );
+	# }
+	# else
+	# {
+	#     $dbh->do( insert into payroc_weather values ( ....) );
+	# }
+
+	# # the insert would probably look more like:
+	# $I_sth = $dbh->prepare( "insert into payroc_weather ( source, wind_dir.... ) VALUES ( ? )");  # OUTSIDE THE LOOP
+	# $I_sth->execute( $values );   INSIDE THE LOOP
+	# not sure on the syntax!
+
+	# likewise the update would be prepared as well and parameters would be bound apprpriately
+					  
     } # foreach $line
 
     
     unlink $sconf{result_file};
     unlink $csv_file;
     
+}
+# ------------------------------------------------------------------------------------------
+
+sub update_all()
+{
+    # put each update source here to invoke
+    sherman_get_entry();
+    metars_get_entries();
+
 }
     
 1;

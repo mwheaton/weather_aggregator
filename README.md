@@ -142,8 +142,18 @@ options for W_source:
 
 This seems like overkill, but might be justified with a lot of sources
 
-Now thinking of calling a class method W_source::update() that simply calls the individual source_get methods
+Now thinking of calling a class method W_source::update_all() that simply
+calls the individual source_get methods consecutively
 
 One option that might change this would be a desire to update one or a few sources
+
+------------------------------------------------------------------------------------------
+
+As for retrieval, I'm not clear what the user will use for location.  He could use a weatherstation/airport ID, but he
+would have to know the ID.  An alternative would be to input his latitude, longitude, and a range getting back all
+weather stations within a given distance
+
+
+
 
 
