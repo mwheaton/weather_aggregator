@@ -98,3 +98,36 @@ Steps Taken:
 
 * plan is to put this code and appropriate values into a config file, not sure if I want to create a base method in the
   class and augment it as weather sites are added, potentially store an anonymous subroutine in the source object
+
+- running into an issue trying to pass the subroutine that retrieves entries into an object and assigning it to a hash element
+  - passing as ref does not connect it to the subroutine, passing as the subroutine invokes it at assignment
+  - may rethink the source class as a subroutine with values rather than a class with values & a subroutine
+
+- ideally, what I want is an iterable list of subroutines that are customized for each source
+
+- rethinking the source class:  deciding it will be more self-contained
+
+- found another weather source, aviation METAR reports
+  - will allow retrieval of every weather station at each airport in one file
+  - switch the 'source' designation to the FAA/NWS designation for sherman.  Use what has already been invented
+  - this has implications for how the user will retrieve value(s) for a given location.  Not likely to know weather station designations
+
+- also realized that wget output file can be specified on the command line
+------------------------------------------------------------------------------------------
+
+I need to rethink the W_source class.  I have gone back and forth as to where the source retrieval methods should be
+stored and I am back to the majority of the source information being stored in the class package itself.  Instead of
+having the retrieval process stored outside the package, I think it makes more sense to store it within the package, and
+provide an interface that does more of the work inside the class.
+
+Somewhere along the way, I got the idea that I needed to pass the retrieval method into the W_source class constructor.
+I think it makes more sense to have the W_source class already have that data and instead have a class object that can
+iterate (or provide single source updates) over the known sources.  This gets around the problem of passing subroutines
+into the constructor
+
+FIXTHIS:  this is bound to be ambiguous, provide a clearer picture of what is meant
+
+
+Get aviation METARS, csv, zipped: wget "https://aviationweather.gov/data/cache/metars.cache.csv.gz"
+------------------------------------------------------------------------------------------
+

@@ -11,7 +11,7 @@ sub new
     my %args = @_;
     my $class = ref($caller) || $caller;
 
-    my $self = { @_ };
+    my $self = { @_ };  #code review!  why am I using input twice!?
    {
 	pcode         => $args{pcode}         || croak ("missing pcode key value\n"),
 	source        => $args{source}        || croak ("missing source key value\n"),
@@ -21,7 +21,7 @@ sub new
 	temp          => $args{temp}          || "????",
 	wind_speed    => $args{wind_speed}    || "????",
 	wind_dir      => $args{wind_dir}      || "????",
-	chance_precip => $args{chance_precip} || "????"
+	chance_precip => $args{chance_precip} || "unknown",
     };
     bless $self, $class;
     return $self;

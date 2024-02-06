@@ -1,41 +1,15 @@
 #!/usr/bin/perl
-# initial test to confirm W_entry is correct
+# test to confirm W_source works properly
 
 # use the BEGIN code below or invoke with:  perl -I . test_entry.pl
 # to import the local modules
 
-use strict;
-
-# add local directory to @INC to find local module
-# change this to your local path or use the abovd invocation of perl above
 BEGIN { push(@INC, "/home/mwheat/payroc/weather_aggregator/src") }
 use W_entry;
+use W_source;
 use Data::Dumper;
 
-# sample data from ShermanCT weather:
-# "Time (UTC)" 2024-01-24 19:15:00
-# "Barometric Pressure (mbar)" 1028.90
-# "Temperature (degrees F)" 35.0
-# "Dewpoint (degrees F)" 33.7
-# "Relative Humidity (%)" 95
-# "Wind speed (mph)" 0
-# "Wind direction (degrees)" 85
-# "Percent chance of rain"  25
-
-# Latitude: 41° 34' 38" N (deg min sec), 41.5772° (decimal), 4134.63N (LORAN)
-# Longitude: 73° 28' 23" W (deg min sec), -73.4730° (decimal), 07328.38W
-
-# sample CSV:
-# 2024-01-31 18:15:00,1018.50,32.0,28.6,87,0,157,,,,,,
-
-# data initialization is broken up into two steps to simulate how it
-# will actually be processed when retrieved from an API.  In this
-# example shermanctweather returns only its own weather so things like
-# postal address, lat, and long are fixed.  The rest will be filtered
-# out of the content returned
-
-# unchanging data for the shermanctweather site
-my %data =
+my %sherman_data =
     (
      pcode => '06784',
      source => "Sherman",
@@ -43,8 +17,7 @@ my %data =
      long => -73.4730,
     );
 
-
-sub get_entry
+sub sherman_get_entry
 {
     # values that are specific to this source retrieval (source config)
     my %sconf =
@@ -105,9 +78,7 @@ sub get_entry
     return $entry;
 }
 
-my $new_entry = get_entry();
+# passing the subroutine into the class is not working.  I need to try another approach
+$ge_ref =  \&sherman_get_entry;
 
-print "printing the new entry:\n";
-$new_entry->print();
-
-print "ref: ref($new_entry)\n";
+$source = W_source->new(%sherman_data, get_entry => $ge_ref);
