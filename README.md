@@ -131,3 +131,19 @@ FIXTHIS:  this is bound to be ambiguous, provide a clearer picture of what is me
 Get aviation METARS, csv, zipped: wget "https://aviationweather.gov/data/cache/metars.cache.csv.gz"
 ------------------------------------------------------------------------------------------
 
+- method to retrieve metars information and create a W_entry for each line
+- improve wget so that it writes to same file and overwrites if exists
+- clean up and move sherman_get_entry and metars_get_entry
+
+options for W_source:
+	- initially thought of creating two methods:
+	  - initialize() which would read in the various source_get methods, probably driven by a list
+	  - execute() an update
+
+This seems like overkill, but might be justified with a lot of sources
+
+Now thinking of calling a class method W_source::update() that simply calls the individual source_get methods
+
+One option that might change this would be a desire to update one or a few sources
+
+
